@@ -1,7 +1,7 @@
 # UUV_nav_system_simulation
 Forward Looking Sonar output reader bundled with RRT collision avoidance algorithm, along with data visualization. 
 
-An data visualized
+An examplary sonar scan interpreted by this program (the image is flipped due to the output of FLS used being "flipped"):
 ![App Screenshot](https://i.imgur.com/QrmY9Ca.png)
 Visualization of output data from a sonar submerged in a rectangular pool
 
