@@ -28,10 +28,11 @@ import static mygame.Main.RRTnode;
 import static mygame.Main.publicAssetManager;
 import static mygame.Main.ACCEPTABLE_RANGE_TO_TARGET;
 import static mygame.Main.DELTA_STEP;
+import static mygame.Utils.random;
 
 /**
  *
- * @author 48793
+ * @author Makary Bardowski
  */
 
 public class RRTalgorithm {
@@ -46,32 +47,23 @@ public class RRTalgorithm {
     public static void randomiseTargetNode(ColorRGBA color,float range){
     Waypoint wp = new Waypoint(random(-1,1)*range,0,random(-1,1)*range,null);
     Node node = new Node();
-    node.setLocalTranslation(wp.getX(),0,wp.getZ());
+    node.setLocalTranslation(wp.getWorldLocation().getX(),0,wp.getWorldLocation().getZ());
     wp.setNode(node);
     RRTnode.attachChild(node);
     addBox(0.15f,0.15f,0.15f,color,wp.getNode());    
     targetWaypoint = wp;
+    node.setCullHint(Spatial.CullHint.Always);
     
     }
     
     public static Vector3f checkForCollision(Vector3f start, Vector3f end){
-        collisionOccured = false;
-        CollisionResults collisionResults = new CollisionResults();
-
-        Vector3f startPos = start.clone();
+        collisionOccured = false;  // 
+        CollisionResults collisionResults = new CollisionResults(); 
+        Vector3f startPos = start.clone(); 
         Vector3f endPos = end.clone();
-
-        
         Ray collisionRay = new Ray(startPos,endPos.subtract(startPos));
-        
         collisionRay.setLimit(startPos.distance(endPos));
         obstacleNode.collideWith(collisionRay, collisionResults);
-        
-        
-
-
-  
-        
         if (collisionResults.size() > 0) {
               
         CollisionResult closest = collisionResults.getClosestCollision(); 
@@ -82,7 +74,6 @@ public class RRTalgorithm {
        
             
         }
-      
         }
                   //  createArrow(startPos,endPos,ColorRGBA.Cyan);
 
@@ -90,142 +81,135 @@ public class RRTalgorithm {
                 return null;
     }
     
-    public static void initiateRRTspace(ColorRGBA color){
-//        RRTnode.attachChild(debugStickEnd);
-//        RRTnode.attachChild(debugStickStart);
-//        addBox(0.01f,1f,0.01f,ColorRGBA.Green,debugStickStart);
-//                addBox(0.02f,0.6f,0.02f,ColorRGBA.White,debugStickEnd);
-//Node test = (Node) publicAssetManager.loadModel("Models/Poligon/Poligon.j3o");
-//        obstacleNode.attachChild(test);
-//test.scale(2);
+    public static void addStartWaypoint(ColorRGBA color){
+            // do wizualizacji
             DirectionalLight sun = new DirectionalLight();
-sun.setColor(ColorRGBA.White.mult(0.75f));
-sun.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal());
-RRTnode.addLight(sun);
+            sun.setColor(ColorRGBA.White.mult(0.75f));
+            sun.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal());
+            RRTnode.addLight(sun);
 
-AmbientLight al = new AmbientLight();
-al.setColor(ColorRGBA.White.mult(1.05f)); // around 0.1?
-RRTnode.addLight(al);
+            AmbientLight al = new AmbientLight();
+            al.setColor(ColorRGBA.White.mult(1.05f)); // around 0.1?
+            RRTnode.addLight(al);
         
-    Main.waypoints.clear();
-    Waypoint wp = new Waypoint(0,0,0,null);
-    Node node = new Node();
-    wp.setNode(node);
-    RRTnode.attachChild(node);
-    addBox(0.13f,0.13f,0.13f,color,wp.getNode());
+            // punkt startowy zawsze w miejscu 0,0,0
+            Main.waypoints.clear();
+            Waypoint wp = new Waypoint(0,0,0,null); // jesli startujemy z innego miejsca, zmieniamy tu
+            Node node = new Node();
+            wp.setNode(node);
+            node.move(wp.getWorldLocation().getX(),0,wp.getWorldLocation().getZ());
+            RRTnode.attachChild(node);
+            addBox(0.13f,0.13f,0.13f,color,wp.getNode());
 
-    Main.waypoints.add(wp);
+            Main.waypoints.add(wp);
     
     
     
-//    addObstacleBox(0.5f, 0.13f,50f,ColorRGBA.Red,new Node(),new Vector3f(5,0,1));
-//    addObstacleBox(0.5f,0.13f,30f,ColorRGBA.Red,new Node(), new Vector3f(-5,0,2));
-//    addObstacleBox(30f,0.13f,0.3f,ColorRGBA.Red,new Node(), new Vector3f(1,0,-5));
+
     
     RRTnode.attachChild(obstacleNode);
     }
     
     public static boolean generateRRTwaypoint(float range){
 
-        boolean success = false;
-        Node distantNode = new Node();
+        boolean success = false; // czy znalazl droge?
         
-        distantNode.setLocalTranslation(random(-1,1)*range,0,random(-1,1)*range);
-//        System.out.println(distantNode.getWorldTranslation());
-        Waypoint targetWp = new Waypoint(distantNode.getWorldTranslation().getX(),0,distantNode.getWorldTranslation().getZ(),null);
-        targetWp.setNode(distantNode);
-        RRTnode.attachChild(distantNode);
-        
-//                addBox(0.1f,0.1f,0.1f,ColorRGBA.Blue,targetWp.getNode());
+        // wygeneruj punkt (ten w kierunku którego będzie dodany nowy punkt RRT) 
+        Waypoint targetWp = new Waypoint(random(-1,1)*range,0,random(-1,1)*range,null);
 
-        
-        Waypoint closestWp = null;
-        float closestDistance = Float.POSITIVE_INFINITY;
-        
- 
-
-        for(Waypoint wp : Main.waypoints){
-           
-        if(!wp.getIsObstacle()){
-            if(targetWp.getNode().getWorldTranslation().distance(wp.getNode().getWorldTranslation()) < closestDistance ){
+        // znajdź najbliższy już istniejący punkt RRT
+        Waypoint closestWp = null; // ten najbliższy punkt , na początku żaden czyli null
+        float closestDistance = Float.POSITIVE_INFINITY; /* dystans do najbliższego,
+        na początku nieskończoność bo skoro nie mamy najbliższego jeszcze określonego to pierwszy
+        sprawdzany będzie najbliższy, bo dowolny dystans < nieskończoność
+        */
+        for(Waypoint wp : Main.waypoints){ // waypoints to arrayLista przechowująca wszystkie punkty
+            if(targetWp.distance(wp) < closestDistance ){
             
                 closestWp = wp;
-                closestDistance = targetWp.getNode().getWorldTranslation().distance(wp.getNode().getWorldTranslation());
+                closestDistance = targetWp.distance(wp);
             }
-            
         
-        }   
         }
-//        long time1 = System.currentTimeMillis();
-        Vector3f collisionCoords = null;
-        // collision check
-        Vector3f imaginaryTargetPos = new Vector3f(closestWp.getX()-(((DELTA_STEP)*(closestWp.getX()-targetWp.getX()))/closestWp.getNode().getWorldTranslation().distance(targetWp.getNode().getWorldTranslation())),0,closestWp.getZ()-(((DELTA_STEP)*(closestWp.getZ()-targetWp.getZ()))/closestWp.getNode().getWorldTranslation().distance(targetWp.getNode().getWorldTranslation())));
+        
+        // sprawdzanie kolizji
+        Vector3f collisionCoords = null; // miejsce w ktorym wystapila kolizja
+        
+        /* imaginaryTargetPos to współrzędne punktu oddalonego
+        o DELTA_STEP (dystans ustalony między punktami) w kierunku punktu targetWp 
+        (patrz na początek metody)     
+        */
+        Vector3f imaginaryTargetPos = new Vector3f(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
         collisionCoords = checkForCollision(closestWp.getNode().getWorldTranslation(),imaginaryTargetPos);
-        //collision check
-//        System.out.println(System.currentTimeMillis()-time1);
         
+        Vector3 point1 = new Vector3(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
+        Vector3 point2 = closestWp.getWorldLocation();
         
+        Utils.lineBetweenPoints(point1, point2);
+
+        // to liczy sie tylko do wizualizacji, niepotrzebne do dzialania matematycznego
         Node addedWpNode = new Node(Integer.toString(Main.waypoints.size()));
-        
-        float addedX = 0;
-        float addedZ = 0;
         RRTnode.attachChild(addedWpNode);
 
         if(collisionOccured){
-return false;
-
-            
-
-
-        }else{
-         addedX = closestWp.getX()-(((DELTA_STEP)*(closestWp.getX()-targetWp.getX()))/closestWp.getNode().getWorldTranslation().distance(targetWp.getNode().getWorldTranslation()));
-         addedZ = closestWp.getZ()-(((DELTA_STEP)*(closestWp.getZ()-targetWp.getZ()))/closestWp.getNode().getWorldTranslation().distance(targetWp.getNode().getWorldTranslation()));
-       
+        return false;
         }
-        addedWpNode.setLocalTranslation(addedX, 0, addedZ);
+        addedWpNode.setLocalTranslation(imaginaryTargetPos.getX(), 0, imaginaryTargetPos.getZ());
         
-              
+        // punkt RRT ktory dodajemy
         Waypoint addedWp = new Waypoint(addedWpNode.getWorldTranslation().getX(),0,addedWpNode.getWorldTranslation().getZ(),closestWp);
         addedWp.setNode(addedWpNode);
         addedWp.setParent(closestWp);
         Main.waypoints.add(addedWp);
-        addedWp.setX(addedX);
-        addedWp.setZ(addedZ);
-        addedWp.setY(0);
+        addedWp.getWorldLocation().setX(imaginaryTargetPos.getX());
+        addedWp.getWorldLocation().setZ(imaginaryTargetPos.getZ());
+        addedWp.getWorldLocation().setY(0);
     
-
+        //stawia niebieski kwadrat tam gdzie stoi punkt
         addBox(0.5f,0.5f,0.5f,ColorRGBA.Blue,addedWp.getNode());
         
+                // rysuje linie miedzy punktami
                 Vector3f[] lineVerticies=new Vector3f[2];
                 lineVerticies[0] = addedWp.getNode().getWorldTranslation();
                 lineVerticies[1] = addedWp.getParent().getNode().getWorldTranslation();
                 plotLine(lineVerticies,ColorRGBA.Cyan);
                 
                 
-        if(addedWp.getNode().getWorldTranslation().distance(targetWaypoint.getNode().getWorldTranslation())<= ACCEPTABLE_RANGE_TO_TARGET){
+                //sprawdzanie czy dodany punkt jest w zasięgu do celu ( nie sprawdzając kolizji!)
+        if(addedWp.distance(targetWaypoint)<= ACCEPTABLE_RANGE_TO_TARGET){
         
             System.out.println("znaleziono");
             success = true;
             
+            // zaznacza punkty z ktorych sklada sie droga 
             while(addedWp.getParent() != null){
                
-        if(addedWp.getParent().getNode().getChildren().size() != 0 ){
+        if(!addedWp.getParent().getNode().getChildren().isEmpty() ){
              Material mat1 = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat1.setColor("Color", ColorRGBA.Green);
-//        addedWp.getParent().getNode().scale(1.25f);
-            addedWp.getParent().getNode().getChild(0).setMaterial(mat1);
-                addedWp = addedWp.getParent();
-                
+             mat1.setColor("Color", ColorRGBA.Green);
+             addedWp.getParent().getNode().getChild(0).setMaterial(mat1);
+             addedWp = addedWp.getParent();  
             }
-            }
+           }
+            // zaznacza punkty z ktorych sklada sie droga
             
         }
 
         
     
-        return success;
+        return success; // zwroc czy znalazl droge czy nie
     
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     public static void addBox(float sizeX,float sizeY, float sizeZ,ColorRGBA color,Node node){
         Box b = new Box(sizeX, sizeY, sizeZ);
@@ -255,11 +239,7 @@ return false;
 //        node.setCullHint(Spatial.CullHint.Always);
     }
     
-    public static float random(int low, int high){
-    
-        return  (float)(low + Math.random() * (high - low));
-        
-    }
+ 
     
     
     
@@ -303,6 +283,8 @@ return false;
     g.setMaterial(mat);
     RRTnode.attachChild(g);
     }
+
+
     
     
     

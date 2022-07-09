@@ -25,73 +25,13 @@ import static mygame.RRTalgorithm.obstacleNode;
 
 /**
  *
- * @author 48793
+ * @author Makary Bardowski
  */
 public class SonarReader {
         public static ArrayList<Float> angles = new ArrayList<>();
     public static HashMap<Float,ArrayList<Waypoint>> waypointsByAngle = new HashMap<>();
 
     
-    public static void readAndDrawSonarOutput(String path,Float range,int signalThreshold) throws FileNotFoundException, IOException{
-         Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Red);
-    
-     BufferedReader reader = new BufferedReader(new FileReader(path));
-        String linia = reader.readLine();
-                 HashSet<Float> anglesHashSet = new HashSet<>();
-        while(linia != null){
-
-             String[] parts = linia.split(" ", 2);
-        parts[0] = parts[0].replace(":","");
-        float angle = Float.parseFloat(parts[0]);
-        if(!anglesHashSet.contains(angle)){
-        anglesHashSet.add(angle);
-        ArrayList<Waypoint> waypointsOnAngle = new ArrayList<>();
-        waypointsByAngle.put(angle, waypointsOnAngle);
-        
-        
-              angle = (float)Math.toRadians(angle);
-        String[] samples = parts[1].split("\\s+");
-
-//            System.out.println(samples.length);
-
-        for(int i = 0; i<samples.length;i++){
-//          if(i ==0){
-//              continue;
-//          }
-              Waypoint wp = new Waypoint();
-
-                if(Integer.valueOf(samples[i]) >= signalThreshold){
-                                    Node node = new Node();
-                wp.setNode(node);
-
-                wp.setIsObstacle(true);
-                    Box b = new Box(0.5f, 0.6f,0.5f);
-        Geometry geom = new Geometry("Box", b);
-        node.attachChild(geom);
-        geom.setMaterial(mat);
-                node.move((float)Math.cos(angle)*((range/samples.length)*i),0,(float)Math.sin(angle)*((range/samples.length)*i));
-        obstacleNode.attachChild(node);
-
-                } 
-            
-            
-        waypointsOnAngle.add(wp);
-
-        }
-        }
-                        linia = reader.readLine();
-
-        }
-         angles = new ArrayList<>(anglesHashSet);
-        Collections.sort(angles);
- 
-
-//        System.out.println(angles);
-        reader.close();
-        
-    
-    }
     
       public static void readAndDrawNewSonarOutput(String path,int signalThreshold) throws FileNotFoundException, IOException{
          
@@ -110,7 +50,7 @@ public class SonarReader {
 //             System.out.println("range: "+ range);
 //             System.out.println(parts[0]);
 //             System.out.println("parts1 "+parts[1]);
-             range= range*50; // USUNAC W WERSJI OSTETECZNEJ, po prostu zwieksza widocznosc w jme
+             range= range*5; // USUNAC W WERSJI OSTETECZNEJ, po prostu zwieksza widocznosc w jme
              
              parts[0] = parts[0].substring(parts[0].indexOf(degString)+degString.length(),parts[0].indexOf(rangeString));
 //             System.out.println("parts0: " + parts[0]);
@@ -156,26 +96,15 @@ parts[1] = sb.toString();
                     Box b = new Box(0.1f*1.5f, 0.1f*1.5f,0.1f*1.5f);
         Geometry geom = new Geometry("Box", b);
         node.attachChild(geom);
-        geom.scale(Integer.parseInt(samples[i])/35);
+//        geom.scale(Integer.parseInt(samples[i])/35);
         
         float angleCopy = (float) Math.toDegrees(angle);
         
 Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", ColorRGBA.Red);
+        mat.setColor("Color", new ColorRGBA(angleCopy/255f-0.1f,0.5f,0,1)); // zielony = 0
         
-        if(angleCopy <= 0.06f && angleCopy >= -0.06f){
-                mat.setColor("Color", ColorRGBA.Blue);
-//                System.out.println("nieb");
-
-        }else if(angleCopy <= 90.3f && angleCopy >= 89.7f) {
-            mat.setColor("Color", ColorRGBA.White);
-            System.out.println("white");
         
-        }
-        else{
-                mat.setColor("Color", ColorRGBA.Red);
 
-        }
                 geom.setMaterial(mat);
 
         node.move((float)Math.cos(angle)*((range/samples.length)*i),0,(float)Math.sin(angle)*((range/samples.length)*i));

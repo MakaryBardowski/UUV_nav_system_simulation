@@ -9,24 +9,24 @@ import com.jme3.scene.Node;
 
 /**
  *
- * @author 48793
+ * @author Makary Bardowski
  */
 public class Waypoint {
     private Node node;
-    private float x;
-    private float y;
-    private float z;
+    private Vector3 worldLocation;
     private boolean isObstacle;
-    
     private Waypoint parent;
 
     public Waypoint(){}
     
     public Waypoint(float x, float y, float z, Waypoint parent) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        worldLocation = new Vector3(x,y,z);
         this.parent = parent;
+    }
+    
+    public Waypoint(Vector3 worldLocation, Waypoint parent){
+    this.worldLocation = new Vector3(worldLocation.getX(),worldLocation.getY(),worldLocation.getZ());
+    this.parent = parent;
     }
 
     public Node getNode() {
@@ -49,28 +49,12 @@ public class Waypoint {
 
     
     
-    public float getX() {
-        return x;
+    public void setWorldLocation(Vector3 worldLocation){
+    this.worldLocation = worldLocation;
     }
-
-    public void setX(float x) {
-        this.x = x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    public void setY(float y) {
-        this.y = y;
-    }
-
-    public float getZ() {
-        return z;
-    }
-
-    public void setZ(float z) {
-        this.z = z;
+    
+    public Vector3 getWorldLocation(){
+    return worldLocation;
     }
 
     public Waypoint getParent() {
@@ -82,6 +66,10 @@ public class Waypoint {
     }
     
     
-    
+       public  float distance(Waypoint w2){
+        
+     return (float) Math.sqrt((worldLocation.getZ()-w2.getWorldLocation().getZ()) *(worldLocation.getZ()-w2.getWorldLocation().getZ())  +  (worldLocation.getX()-w2.getWorldLocation().getX())*(worldLocation.getX()-w2.getWorldLocation().getX()));
+        
+    }
     
 }

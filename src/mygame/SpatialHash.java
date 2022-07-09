@@ -20,7 +20,7 @@ public class SpatialHash {
         
         public static void getContainingCell(Waypoint wp){
         
-            String containingCellVector = wp.getX()+","+0+","+wp.getY();
+            String containingCellVector = wp.getWorldLocation().getX()+","+0+","+wp.getWorldLocation().getY();
             
             
         }

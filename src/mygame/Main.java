@@ -18,12 +18,9 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static mygame.RRTalgorithm.obstacleNode;
+import static mygame.Utils.random;
 
-/**
- * This is the Main Class of your Game. You should only do initialization here.
- * Move your Logic into AppStates or Controls
- * @author normenhansen
- */
 public class Main extends SimpleApplication {
     
     public static ArrayList<Waypoint> waypoints = new ArrayList<>();
@@ -83,8 +80,8 @@ public class Main extends SimpleApplication {
     guiNode.attachChild(timeSumText);
     
     long time1 = System.currentTimeMillis();
-    for(int i = 0; i < 1000; i++){
-    RRTalgorithm.random(-1, 1);
+    for(int i = 0; i < 10000; i++){
+    random(-1, 1);
     }
     System.out.println(System.currentTimeMillis() - time1);
     
@@ -93,17 +90,20 @@ public class Main extends SimpleApplication {
         flyCam.setZoomSpeed(30);
         publicAssetManager = assetManager;
         rootNode.attachChild(RRTnode);
-        RRTalgorithm.initiateRRTspace(ColorRGBA.Green);
+        RRTalgorithm.addStartWaypoint(ColorRGBA.Green);
         RRTalgorithm.randomiseTargetNode(ColorRGBA.Yellow,RRT_RANGE);
                 try
         {
+            
                         System.out.println("try");
-            SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\out1448.txt",75);
-//                SonarReader.readAndDrawSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\out1511.txt", 300f,90);
-
+                                       SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
+          
         } catch (IOException ex) {
             System.out.println("kacz");
         }
+                long time = System.currentTimeMillis();
+                jme3tools.optimize.GeometryBatchFactory.optimize(obstacleNode);
+                                System.out.println(System.currentTimeMillis()-time);
     }
 
     @Override
