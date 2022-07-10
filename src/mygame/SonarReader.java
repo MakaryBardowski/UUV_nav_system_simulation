@@ -7,8 +7,11 @@ package mygame;
 
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.debug.Grid;
+import com.jme3.scene.debug.WireSphere;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import java.io.BufferedReader;
@@ -20,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import static mygame.Main.RRTnode;
 import static mygame.Main.publicAssetManager;
 import static mygame.RRTalgorithm.obstacleNode;
 
@@ -31,7 +35,6 @@ import static mygame.RRTalgorithm.obstacleNode;
 public class SonarReader {
         public static ArrayList<Float> angles = new ArrayList<>();
     public static HashMap<Float,ArrayList<Waypoint>> waypointsByAngle = new HashMap<>();
-
     
     
       public static void readAndDrawNewSonarOutput(String path,int signalThreshold) throws FileNotFoundException, IOException{
@@ -82,34 +85,21 @@ parts[1] = sb.toString();
 //            System.out.println(samples.length);
 //System.out.println("sample "+Arrays.toString(samples));
         for(int i = 0; i<samples.length;i++){
-//          if(i ==0){
-//              continue;
-//          }
+          if(i ==0){
+              continue;
+          }
               Waypoint wp = new Waypoint();
 
-                if(Integer.valueOf(samples[i]) >= signalThreshold){
-//                                        System.out.println("SAMPLE: "+ i);
+                if(Integer.valueOf(samples[i]) >= signalThreshold ){ // usunac i <30
 
                                     Node node = new Node();
                 wp.setNode(node);
 
                 wp.setIsObstacle(true);
                 
-//                    Box b = new Box(0.1f*1.5f, 0.1f*1.5f,0.1f*1.5f);
-//        Geometry geom = new Geometry("Box", b);
-        
-        float radius = 0.2f     * (Integer.parseInt(samples[i])/35); // 0.2 base radius
-        Sphere sphere = new Sphere(15, 15, radius);
-    Geometry geom = new Geometry("BOOM!", sphere);
-    Material mark_mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    mark_mat.setColor("Color", ColorRGBA.Red);
-    geom.setMaterial(mark_mat);
-        
-        
-        
-        
-        node.attachChild(geom);
-//        geom.scale(Integer.parseInt(samples[i])/30);
+
+        float radius = 0.2f     * (Float.parseFloat(samples[i])/35); // 0.2 base radius
+
         
         float angleCopy = (float) Math.toDegrees(angle);
         
@@ -118,14 +108,21 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
         
         
 
-                geom.setMaterial(mat);
+//                geom.setMaterial(mat);
 
-        node.move((float)Math.cos(angle)*((range/samples.length)*i),0,(float)Math.sin(angle)*((range/samples.length)*i));
-       
         Obstacle obstacle = new Obstacle(new Vector3((float)Math.cos(angle)*((range/samples.length)*i),0,(float)Math.sin(angle)*((range/samples.length)*i)),radius);
+ 
+                
+        node.move(obstacle.getWorldLocation().getX(),obstacle.getWorldLocation().getY(),obstacle.getWorldLocation().getZ());
+       
+        addHitboxIndicator(RRTnode,obstacle.getRadius(),new Vector3f(  obstacle.getWorldLocation().getX(),obstacle.getWorldLocation().getY(),obstacle.getWorldLocation().getZ()  ));
+        
         Main.obstacles.add(obstacle);
         
         obstacleNode.attachChild(node);
+
+                    
+//                   break;
 
                 } 
             
@@ -134,6 +131,7 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
 
         }
         }
+//        break;
                         linia = reader.readLine();
 
         }
@@ -147,6 +145,21 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
     
     }
     
+    public static void addHitboxIndicator(Node node,float radius,Vector3f offset){
+    Circle circle = new Circle(radius);
+        Geometry geo = new Geometry("OurMesh", circle); // using our custom mesh object
+Material mat = new Material(publicAssetManager,
+    "Common/MatDefs/Misc/Unshaded.j3md");
+ mat.getAdditionalRenderState().setWireframe(true);
+    mat.getAdditionalRenderState().setLineWidth(4);
+mat.setColor("Color", ColorRGBA.Red);
+geo.setMaterial(mat);
+node.attachChild(geo);
+geo.move(offset);
+geo.move(0,0.04f,0);
+    }
     
+    
+   
     
 }

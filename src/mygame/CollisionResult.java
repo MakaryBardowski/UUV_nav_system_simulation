@@ -12,7 +12,7 @@ package mygame;
 public class CollisionResult {
     private final boolean collisionOccured;
     private final Vector3 worldLocation;
-    static final CollisionResult noCollision = new CollisionResult(false,Vector3.nonExistent);
+    public static final CollisionResult NO_COLLISION = new CollisionResult(false,Vector3.nonExistent);
     
     CollisionResult(boolean collisionOccured,Vector3 worldLocation){
     this.collisionOccured = collisionOccured;

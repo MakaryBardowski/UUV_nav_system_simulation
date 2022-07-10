@@ -8,6 +8,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -31,7 +32,7 @@ public class Main extends SimpleApplication {
     public static final float DELTA_STEP = 3f; // 0.5f
     public final float RRT_RANGE = 50f; // bedzie 700f - bo 700m
     private final int RRT_ITERATIONS_PER_PRESS = 30; // ilosc prob uwtorzenia punktu RRT
-    public static final float ACCEPTABLE_RANGE_TO_TARGET = 3f;
+    public static final float ACCEPTABLE_RANGE_TO_TARGET = DELTA_STEP;
     public static final float CAMERA_SPEED = 26f; // 13f
         
     private BitmapText timeText;
@@ -40,6 +41,8 @@ public class Main extends SimpleApplication {
     private BitmapText timeSumText;
     private int nodeCounter = 2;
     
+    static Node targetNodeIndicator;
+    
     
     public static void main(String[] args) {
         Main app = new Main();
@@ -47,10 +50,22 @@ public class Main extends SimpleApplication {
         publicAssetManager = app.getAssetManager();
      
     }
+    
+    private void initTargetIndicatior(){
+   Box b = new Box(0.2f, 0.2f, 0.2f);
+        Geometry geom = new Geometry("Box", b);
+
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        mat.setColor("Color", ColorRGBA.Magenta);
+        geom.setMaterial(mat);
+
+       targetNodeIndicator = new Node();
+       targetNodeIndicator.attachChild(geom);
+    }
 
     @Override
     public void simpleInitApp() {
-       
+       initTargetIndicatior();
 
     
         
@@ -97,14 +112,22 @@ public class Main extends SimpleApplication {
         {
             
                         System.out.println("try");
+                        for(int i = 0; i< 10; i++){
                                        SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
-          
+                        }
+                        System.out.println("obstacles.size = "+obstacles.size());
+                        
         } catch (IOException ex) {
             System.out.println("kacz");
         }
+                
+                Utils.attachCoordinateAxes(rootNode,Vector3f.ZERO);
+                System.out.println(rootNode.getChild(rootNode.getChildren().size()-1));
+                
                 long time = System.currentTimeMillis();
                 jme3tools.optimize.GeometryBatchFactory.optimize(obstacleNode);
                                 System.out.println(System.currentTimeMillis()-time);
+
     }
 
     @Override
@@ -143,19 +166,19 @@ public class Main extends SimpleApplication {
            if(name.equals("K")&& !keyPressed){
            long time1 =  System.currentTimeMillis();
            
-               for(int i = 0; i < RRT_ITERATIONS_PER_PRESS;i++){
-                  RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
-               
-//               nodeCounter++;
-               }
+//               for(int i = 0; i < RRT_ITERATIONS_PER_PRESS;i++){
+//                  RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
+//               
+////               nodeCounter++;
+//               }
 
                 
                
-//                boolean success = false;
-//                while(!success){
-//                success = RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
-//                nodeCounter++;
-//                }
+                boolean success = false;
+                while(!success){
+                success = RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
+                nodeCounter++;
+                }
 
 
 

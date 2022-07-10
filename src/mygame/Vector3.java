@@ -14,7 +14,7 @@ public class Vector3{
     private float y;
     private float z;
     
-    static Vector3 nonExistent = new Vector3(Float.NaN,Float.NaN,Float.NaN);
+    public static Vector3 nonExistent = new Vector3(Float.NaN,Float.NaN,Float.NaN);
     
     public Vector3(float x, float y, float z) {
         this.x = x;
@@ -59,6 +59,10 @@ public class Vector3{
      return (float) Math.sqrt((z-w2.getZ()) *(z-w2.getZ())  +  (x-w2.getX())*(x-w2.getX()));
         
     }
+    public Vector3 subtract(Vector3 B){
+    return new Vector3(x - B.getX(),0,z-B.getZ());
+    }
+    
    @Override
     public String toString(){
     
