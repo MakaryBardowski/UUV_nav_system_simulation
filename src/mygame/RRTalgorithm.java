@@ -5,7 +5,7 @@
  */
 package mygame;
 
-import com.jme3.collision.CollisionResult;
+//import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -56,30 +56,30 @@ public class RRTalgorithm {
     
     }
     
-    public static Vector3f checkForCollision(Vector3f start, Vector3f end){
-        collisionOccured = false;  // 
-        CollisionResults collisionResults = new CollisionResults(); 
-        Vector3f startPos = start.clone(); 
-        Vector3f endPos = end.clone();
-        Ray collisionRay = new Ray(startPos,endPos.subtract(startPos));
-        collisionRay.setLimit(startPos.distance(endPos));
-        obstacleNode.collideWith(collisionRay, collisionResults);
-        if (collisionResults.size() > 0) {
-              
-        CollisionResult closest = collisionResults.getClosestCollision(); 
-        if(closest.getContactPoint().distance(startPos) <= collisionRay.getLimit() && closest.getContactPoint().distance(startPos) > 0){
-            collisionOccured = true;
-
-            return closest.getContactPoint().clone();
-       
-            
-        }
-        }
-                  //  createArrow(startPos,endPos,ColorRGBA.Cyan);
-
-                collisionOccured = false;
-                return null;
-    }
+//    public static Vector3f checkForCollision(Vector3f start, Vector3f end){
+//        collisionOccured = false;  // 
+//        CollisionResults collisionResults = new CollisionResults(); 
+//        Vector3f startPos = start.clone(); 
+//        Vector3f endPos = end.clone();
+//        Ray collisionRay = new Ray(startPos,endPos.subtract(startPos));
+//        collisionRay.setLimit(startPos.distance(endPos));
+//        obstacleNode.collideWith(collisionRay, collisionResults);
+//        if (collisionResults.size() > 0) {
+//              
+//        CollisionResult closest = collisionResults.getClosestCollision(); 
+//        if(closest.getContactPoint().distance(startPos) <= collisionRay.getLimit() && closest.getContactPoint().distance(startPos) > 0){
+//            collisionOccured = true;
+//
+//            return closest.getContactPoint().clone();
+//       
+//            
+//        }
+//        }
+//                  //  createArrow(startPos,endPos,ColorRGBA.Cyan);
+//
+//                collisionOccured = false;
+//                return null;
+//    }
     
     public static void addStartWaypoint(ColorRGBA color){
             // do wizualizacji
@@ -111,7 +111,8 @@ public class RRTalgorithm {
     }
     
     public static boolean generateRRTwaypoint(float range){
-
+        CollisionResult result = null;
+        collisionOccured = false;
         boolean success = false; // czy znalazl droge?
         
         // wygeneruj punkt (ten w kierunku którego będzie dodany nowy punkt RRT) 
@@ -133,19 +134,35 @@ public class RRTalgorithm {
         }
         
         // sprawdzanie kolizji
-        Vector3f collisionCoords = null; // miejsce w ktorym wystapila kolizja
+        Vector3 collisionCoords = null; // miejsce w ktorym wystapila kolizja
         
         /* imaginaryTargetPos to współrzędne punktu oddalonego
         o DELTA_STEP (dystans ustalony między punktami) w kierunku punktu targetWp 
         (patrz na początek metody)     
         */
+        Utils.findCollision(Utils.lineBetweenPoints(new Vector3(0,0,0), new Vector3(3,0,1.5f)), new Obstacle(new Vector3(3,0,1.5f),1.5f));
+
         Vector3f imaginaryTargetPos = new Vector3f(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
-        collisionCoords = checkForCollision(closestWp.getNode().getWorldTranslation(),imaginaryTargetPos);
+//        collisionCoords = checkForCollision(closestWp.getNode().getWorldTranslation(),imaginaryTargetPos);
+//        System.out.println("--------------");
+//        System.out.println("ray "+collisionCoords);
+        //test
         
-        Vector3 point1 = new Vector3(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
-        Vector3 point2 = closestWp.getWorldLocation();
-        
-        Utils.lineBetweenPoints(point1, point2);
+        for (Obstacle obstacle : Main.obstacles) {
+            Vector3 point1 = new Vector3(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
+            Vector3 point2 = closestWp.getWorldLocation();
+            
+            result = Utils.findCollision(Utils.lineBetweenPoints(point1, point2), obstacle);
+            collisionCoords = result.getWorldLocation();
+            
+            if(collisionCoords.distance(closestWp.getWorldLocation()) < DELTA_STEP){
+                            collisionOccured = result.getCollisionOccured();
+
+//                System.out.println("kolizja");
+//System.out.println("obstacle"+obstacle.getWorldLocation());
+                break;
+            }
+        }
 
         // to liczy sie tylko do wizualizacji, niepotrzebne do dzialania matematycznego
         Node addedWpNode = new Node(Integer.toString(Main.waypoints.size()));
@@ -166,7 +183,7 @@ public class RRTalgorithm {
         addedWp.getWorldLocation().setY(0);
     
         //stawia niebieski kwadrat tam gdzie stoi punkt
-        addBox(0.5f,0.5f,0.5f,ColorRGBA.Blue,addedWp.getNode());
+        addBox(0.15f,0.15f,0.15f,ColorRGBA.Blue,addedWp.getNode());
         
                 // rysuje linie miedzy punktami
                 Vector3f[] lineVerticies=new Vector3f[2];

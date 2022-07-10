@@ -13,7 +13,9 @@ public class Vector3{
     private float x;
     private float y;
     private float z;
-
+    
+    static Vector3 nonExistent = new Vector3(Float.NaN,Float.NaN,Float.NaN);
+    
     public Vector3(float x, float y, float z) {
         this.x = x;
         this.y = y;
@@ -52,7 +54,15 @@ public class Vector3{
         this.z = z;
     }
     
-  
+    public  float distance(Vector3 w2){
+        
+     return (float) Math.sqrt((z-w2.getZ()) *(z-w2.getZ())  +  (x-w2.getX())*(x-w2.getX()));
+        
+    }
+   @Override
+    public String toString(){
     
+    return "("+x+", "+y+", " +z+")";
+    }
    
 }

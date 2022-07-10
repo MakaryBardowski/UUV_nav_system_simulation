@@ -10,6 +10,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -93,10 +94,22 @@ parts[1] = sb.toString();
                 wp.setNode(node);
 
                 wp.setIsObstacle(true);
-                    Box b = new Box(0.1f*1.5f, 0.1f*1.5f,0.1f*1.5f);
-        Geometry geom = new Geometry("Box", b);
+                
+//                    Box b = new Box(0.1f*1.5f, 0.1f*1.5f,0.1f*1.5f);
+//        Geometry geom = new Geometry("Box", b);
+        
+        float radius = 0.2f     * (Integer.parseInt(samples[i])/35); // 0.2 base radius
+        Sphere sphere = new Sphere(15, 15, radius);
+    Geometry geom = new Geometry("BOOM!", sphere);
+    Material mark_mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    mark_mat.setColor("Color", ColorRGBA.Red);
+    geom.setMaterial(mark_mat);
+        
+        
+        
+        
         node.attachChild(geom);
-//        geom.scale(Integer.parseInt(samples[i])/35);
+//        geom.scale(Integer.parseInt(samples[i])/30);
         
         float angleCopy = (float) Math.toDegrees(angle);
         
@@ -108,6 +121,10 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
                 geom.setMaterial(mat);
 
         node.move((float)Math.cos(angle)*((range/samples.length)*i),0,(float)Math.sin(angle)*((range/samples.length)*i));
+       
+        Obstacle obstacle = new Obstacle(new Vector3((float)Math.cos(angle)*((range/samples.length)*i),0,(float)Math.sin(angle)*((range/samples.length)*i)),radius);
+        Main.obstacles.add(obstacle);
+        
         obstacleNode.attachChild(node);
 
                 } 

@@ -24,6 +24,7 @@ import static mygame.Utils.random;
 public class Main extends SimpleApplication {
     
     public static ArrayList<Waypoint> waypoints = new ArrayList<>();
+    public static ArrayList<Obstacle> obstacles = new ArrayList<>();
     public static final Node RRTnode = new Node();
     public static AssetManager publicAssetManager;
     
