@@ -42,7 +42,7 @@ public class Main extends SimpleApplication {
     private int nodeCounter = 2;
     
     static Node targetNodeIndicator;
-    
+    static WorldGrid grid;
     
     public static void main(String[] args) {
         Main app = new Main();
@@ -67,7 +67,8 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
        initTargetIndicatior();
 
-    
+       grid = new WorldGrid();
+       grid.setup(100, 100, 2);
         
           guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
     
@@ -112,9 +113,8 @@ public class Main extends SimpleApplication {
         {
             
                         System.out.println("try");
-                        for(int i = 0; i< 10; i++){
-                                       SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
-                        }
+               SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
+                        
                         System.out.println("obstacles.size = "+obstacles.size());
                         
         } catch (IOException ex) {
@@ -127,6 +127,8 @@ public class Main extends SimpleApplication {
                 long time = System.currentTimeMillis();
                 jme3tools.optimize.GeometryBatchFactory.optimize(obstacleNode);
                                 System.out.println(System.currentTimeMillis()-time);
+                                
+                                
 
     }
 
@@ -166,6 +168,15 @@ public class Main extends SimpleApplication {
            if(name.equals("K")&& !keyPressed){
            long time1 =  System.currentTimeMillis();
            
+           Node node = new Node();
+           RRTnode.attachChild(node);
+           float moveX = -33.363026f;
+           float moveY = -35.52801f;
+           node.move(moveX,0,moveY);
+           Obstacle o = new Obstacle(new Vector3(moveX,moveY),0.2f);
+           o.setNode(node);
+           grid.GetNearby(o);
+           
 //               for(int i = 0; i < RRT_ITERATIONS_PER_PRESS;i++){
 //                  RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
 //               
@@ -174,11 +185,11 @@ public class Main extends SimpleApplication {
 
                 
                
-                boolean success = false;
-                while(!success){
-                success = RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
-                nodeCounter++;
-                }
+//                boolean success = false;
+//                while(!success){
+//                success = RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
+//                nodeCounter++;
+//                }
 
 
 

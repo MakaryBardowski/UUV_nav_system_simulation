@@ -56,30 +56,7 @@ public class RRTalgorithm {
     
     }
     
-//    public static Vector3f checkForCollision(Vector3f start, Vector3f end){
-//        collisionOccured = false;  // 
-//        CollisionResults collisionResults = new CollisionResults(); 
-//        Vector3f startPos = start.clone(); 
-//        Vector3f endPos = end.clone();
-//        Ray collisionRay = new Ray(startPos,endPos.subtract(startPos));
-//        collisionRay.setLimit(startPos.distance(endPos));
-//        obstacleNode.collideWith(collisionRay, collisionResults);
-//        if (collisionResults.size() > 0) {
-//              
-//        CollisionResult closest = collisionResults.getClosestCollision(); 
-//        if(closest.getContactPoint().distance(startPos) <= collisionRay.getLimit() && closest.getContactPoint().distance(startPos) > 0){
-//            collisionOccured = true;
-//
-//            return closest.getContactPoint().clone();
-//       
-//            
-//        }
-//        }
-//                  //  createArrow(startPos,endPos,ColorRGBA.Cyan);
-//
-//                collisionOccured = false;
-//                return null;
-//    }
+
     
     public static void addStartWaypoint(ColorRGBA color){
             // do wizualizacji, dodaje swiatlo zeby bylo cokolwiek widac
@@ -151,6 +128,8 @@ public class RRTalgorithm {
 
         Vector3f imaginaryTargetPos = new Vector3f(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
 
+        
+        
         //test
         for (Obstacle obstacle : Main.obstacles) {
             Vector3 point2 = new Vector3(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));

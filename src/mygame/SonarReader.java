@@ -37,6 +37,8 @@ public class SonarReader {
     public static HashMap<Float,ArrayList<Waypoint>> waypointsByAngle = new HashMap<>();
     
     
+      
+    
       public static void readAndDrawNewSonarOutput(String path,int signalThreshold) throws FileNotFoundException, IOException{
          
     Float range;
@@ -116,13 +118,12 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
         node.move(obstacle.getWorldLocation().getX(),obstacle.getWorldLocation().getY(),obstacle.getWorldLocation().getZ());
        
         addHitboxIndicator(RRTnode,obstacle.getRadius(),new Vector3f(  obstacle.getWorldLocation().getX(),obstacle.getWorldLocation().getY(),obstacle.getWorldLocation().getZ()  ));
-        
+        obstacle.setNode(node);
         Main.obstacles.add(obstacle);
-        
+        Main.grid.RegisterObject(obstacle);
         obstacleNode.attachChild(node);
-
-                    
-//                   break;
+        System.out.println(obstacle.getWorldLocation());
+//        Main.grid.GetNearby(obstacle);
 
                 } 
             

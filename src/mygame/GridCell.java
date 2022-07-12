@@ -10,5 +10,10 @@ package mygame;
  * @author 48793
  */
 public class GridCell {
+    private WorldGrid grid;
+
+
+    
+    
     
 }

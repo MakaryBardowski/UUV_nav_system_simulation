@@ -14,7 +14,7 @@ public class Vector3{
     private float y;
     private float z;
     
-    public static Vector3 nonExistent = new Vector3(Float.NaN,Float.NaN,Float.NaN);
+    public static Vector3 NONEXISTENT = new Vector3(Float.NaN,Float.NaN,Float.NaN);
     
     public Vector3(float x, float y, float z) {
         this.x = x;
@@ -28,7 +28,9 @@ public class Vector3{
     z = source.z;
     }
 
-    
+     public Vector3(float x, float z) {
+        this(x,0,z);
+    }
     
     public float getX() {
         return x;
@@ -54,9 +56,9 @@ public class Vector3{
         this.z = z;
     }
     
-    public  float distance(Vector3 w2){
+    public  float distance(Vector3 B){
         
-     return (float) Math.sqrt((z-w2.getZ()) *(z-w2.getZ())  +  (x-w2.getX())*(x-w2.getX()));
+     return (float) Math.sqrt((z-B.getZ()) *(z-B.getZ())  +  (x-B.getX())*(x-B.getX()));
         
     }
     public Vector3 subtract(Vector3 B){
