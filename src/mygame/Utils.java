@@ -88,11 +88,11 @@ public class Utils {
        closestIntersectionX = intersectionX1;
        closestIntersectionZ = intersectionZ1;
        }
-       
-//       System.out.println("pkt1 nalezy: " + point_1_isBetween);
-//       System.out.println("pkt2 nalezy: " + point_2_isBetween);
-//       System.out.println("najbliższy punkt przeciecia linii z kolem: X: "+intersectionX1+" Z: "+ intersectionZ1);
-//       System.out.println("najbliższy punkt przeciecia linii z kolem: X: "+intersectionX2+" Z: "+ intersectionZ2);
+       System.out.println("-------------------");
+       System.out.println("pkt1 nalezy: " + point_1_isBetween);
+       System.out.println("pkt2 nalezy: " + point_2_isBetween);
+       System.out.println("najbliższy punkt przeciecia linii z kolem: X: "+intersectionX1+" Z: "+ intersectionZ1);
+       System.out.println("najbliższy punkt przeciecia linii z kolem: X: "+intersectionX2+" Z: "+ intersectionZ2);
 
        return new CollisionResult(true,new Vector3(closestIntersectionX,0,closestIntersectionZ));
        }

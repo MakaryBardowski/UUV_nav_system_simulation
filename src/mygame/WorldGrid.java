@@ -6,12 +6,18 @@
 package mygame;
 
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 import static com.jme3.scene.plugins.fbx.mesh.FbxLayerElement.Type.Texture;
 import com.jme3.texture.Texture;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
+import static mygame.Main.DELTA_STEP;
+import static mygame.Main.debugNode;
 import static mygame.Main.publicAssetManager;
 
 /**
@@ -19,125 +25,174 @@ import static mygame.Main.publicAssetManager;
  * @author 48793
  */
 public class WorldGrid {
-    private int cols;
-    private int rows;
+ 
     private int cellSize;
-    private HashMap<Integer, ArrayList<Obstacle>> buckets;
-    private int sceneWidth;
-    private int sceneHeight;
+    private HashMap<String,ArrayList<Obstacle>> contents;
     
     
-    void setup(int sceneWidth,int sceneHeight, int cellSize){
-
-    cols= sceneWidth / cellSize;
-    rows= sceneHeight / cellSize;
-    buckets = new HashMap<Integer, ArrayList<Obstacle>>();
-
-    for (int i = -sceneHeight; i < (cols*rows)-sceneHeight; i++)
-    {
-        buckets.put(i, new ArrayList<Obstacle>());
-    }
-
-    this.sceneWidth = sceneWidth;
-    this.sceneHeight = sceneHeight;
+    public WorldGrid(int cellSize){
     this.cellSize = cellSize;
-//    System.out.println("setup -> buckets.size " + buckets.size() );
-//        System.out.println("setup -> buckets " + buckets );
-
-}
-
-     void ClearBuckets(){
-       buckets.clear();
-       for (int i = 0; i < cols * rows; i++)
-       {
-           buckets.put(i, new ArrayList<Obstacle>());   
-       }
-   }
+    contents = new HashMap();
+    }
     
-    
-     void RegisterObject(Obstacle obj) // sth is wrong
-    {
-        ArrayList<Integer> cellIds= getIdForObj(obj);//GetIdForObj(obj);
-//        System.out.println("cellid "+cellIds);
-//        System.out.println("buckets "+ buckets );
-       for(Integer bucket : cellIds){
-//           System.out.println("bucket index "+ bucket);
-           buckets.get(bucket).add(obj);
-       }
+    public String hash(Vector3 point){
+//        System.out.println("point:" + point);  // old
+//        
+//    int[] loc = new int[2];
+//    loc[0] = (int)Math.floor(point.getX()/cellSize);
+//    loc[1] = (int)Math.floor(point.getZ()/cellSize);
+//    System.out.println("loc "+ Arrays.toString(loc));
+//    return loc[0]+"."+loc[1];
+
+     System.out.println("point:" + point);
+        
+    int[] loc = new int[2];
+    loc[0] = cellSize*(int)(Math.floor(point.getX()/cellSize));
+
+
+    loc[1] = cellSize*(int)(Math.floor(point.getZ()/cellSize));
+
+    System.out.println("loc "+ Arrays.toString(loc));
+    return loc[0]+"."+loc[1];
+
     }
     
     
-    
-    
-    private ArrayList getIdForObj(Obstacle obj)
-    {
-        ArrayList<Integer> bucketsObjIsIn = new ArrayList<>();
-           
-        Vector3 min = new Vector3(
-            obj.getWorldLocation().getX() - (obj.getRadius()),
-            obj.getWorldLocation().getZ() - (obj.getRadius()));   
+    public void insert(Obstacle object){
+        
+       Vector3 min = new Vector3(
+            object.getWorldLocation().getX() - (object.getRadius()),
+             object.getWorldLocation().getZ() - (object.getRadius()));   
+
         Vector3 max = new Vector3(
-            obj.getWorldLocation().getX() + (obj.getRadius()),
-            obj.getWorldLocation().getZ() + (obj.getRadius()));
+            object.getWorldLocation().getX() + (object.getRadius()),
+             object.getWorldLocation().getZ() + (object.getRadius()));   
+        
+        
+        
+//        if(  contents.get( hash(object.getWorldLocation()))  == null  ){
+//            contents.put( hash(object.getWorldLocation()) , new ArrayList<Obstacle>());
+//        }else{
+//            contents.get( hash(object.getWorldLocation())).add(object);
+//
+//        }
 
-        float width = sceneWidth / cellSize;   
-        //TopLeft
-        AddBucket(min,width,bucketsObjIsIn);
-        //TopRight
-        AddBucket(new Vector3(max.getX(), min.getZ()), width, bucketsObjIsIn);
-        //BottomRight
-        AddBucket(new Vector3(max.getX(), max.getZ()), width, bucketsObjIsIn);
-        //BottomLeft
-        AddBucket(new Vector3(min.getX(), max.getZ()), width, bucketsObjIsIn);
+       if(  contents.get( hash(min))  == null  ){
+            contents.put( hash(min) , new ArrayList<Obstacle>());
+        }else{
+            contents.get( hash(min)).add(object);
 
-	return bucketsObjIsIn;    
-    }
-
-    
-    
-    
-    
-    private void AddBucket(Vector3 vector,float width,ArrayList<Integer> buckettoaddto)
-    {  
-        int cellPosition = (int)(
-                   (Math.floor(vector.getX() / cellSize)) +
-                   (Math.floor(vector.getZ() / cellSize))
-//                *
-//                   width   
-        );
-        if(!buckettoaddto.contains(cellPosition))
-            buckettoaddto.add(cellPosition);
-    }
-    
-    
-     ArrayList<Obstacle> GetNearby(Obstacle obj)
-    {   
-        if(obj.getNode()!=null){
-       RRTalgorithm.addBox(0.1f, 0.6f, 0.1f, ColorRGBA.Blue, obj.getNode());
         }
+       
+       if(  contents.get( hash(max))  == null  ){
+            contents.put( hash(max) , new ArrayList<Obstacle>());
+        }else{
+            contents.get( hash(max)).add(object);
+
+        }
+       
+     Vector3 newMin = new Vector3(min.getX(),max.getZ());
+       
+       if(  contents.get( hash(newMin))  == null  ){
+            contents.put( hash(newMin) , new ArrayList<Obstacle>());
+        }else{
+            contents.get( hash(newMin)).add(object);
+
+        }
+       
+              newMin = new Vector3(max.getX(),min.getZ());
+
+       
+       if(  contents.get( hash(newMin))  == null  ){
+            contents.put( hash(newMin) , new ArrayList<Obstacle>());
+        }else{
+            contents.get( hash(newMin)).add(object);
+
+        }
+       
+
+
+  
+    }
+    
+    public List<Obstacle> getNearby(Obstacle object){
+        debugNode.detachAllChildren();
+        SonarReader.addHitboxIndicator(debugNode, object.getRadius(),new Vector3f ( object.getWorldLocation().getX(),0 , object.getWorldLocation().getZ()  )     );
+        List<Obstacle> output = new ArrayList<>();
         
         
-        ArrayList<Obstacle> objects = new ArrayList<>();
-        ArrayList<Integer> bucketIds = getIdForObj(obj);
-        for(Integer i : bucketIds){
+         Vector3 min = new Vector3(
+            object.getWorldLocation().getX() - (object.getRadius()),
+             object.getWorldLocation().getZ() - (object.getRadius()));   
+
+        Vector3 max = new Vector3(
+            object.getWorldLocation().getX() + (object.getRadius()),
+             object.getWorldLocation().getZ() + (object.getRadius()));   
+        
+        
+        addDebugTile(max);
+         addDebugTile(min);
+         addDebugTile(object.getWorldLocation());
+
+          
+        
+        
+        if(contents.get( hash(object.getWorldLocation())) != null){
             
-            objects.addAll(buckets.get(i)); // wrong, to be fixed
-        
-        }
-        System.out.println("objects"+objects.size());
-        
-        for(Obstacle o : objects){
-            System.out.println(o.getNode());
-        if(o.getNode()!=null){
-       RRTalgorithm.addBox(0.1f, 0.3f, 0.1f, ColorRGBA.Green, o.getNode());
-        }
-        
+//            String[] parts = hash(object.getWorldLocation()).split(".");             
+//            for(Obstacle detectedObstacle : contents.get( hash(object.getWorldLocation())) ){
+////            System.out.println("dodaje");
+//        RRTalgorithm.addBox(0.1f, 0.3f, 0.1f, ColorRGBA.Green, detectedObstacle.getNode());
+//        }
+
+
+    
+    output.addAll( contents.get( hash(object.getWorldLocation())) );
         }
         
-        return objects;   
+        
+        
+        if(contents.get( hash(min)) != null){
+            output.addAll( contents.get( hash(min)) );
+        }
+        
+           if(contents.get( hash(max)) != null){
+            output.addAll( contents.get( hash(max)) );
+        }
+           
+            Vector3 newMin = new Vector3(min.getX(),max.getZ());
+                    addDebugTile(newMin);
+
+            
+             if(contents.get( hash(newMin)) != null){
+            output.addAll( contents.get( hash(newMin)) );
+                }
+
+              newMin = new Vector3(max.getX(),min.getZ());
+                    addDebugTile(newMin);
+
+         if(contents.get( hash(newMin)) != null){
+            output.addAll( contents.get( hash(newMin)) );
+                }
+        
+        return output;
     }
     
     
+    private  void addDebugTile(Vector3 pos){
+          Material allowedMaterial = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    allowedMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);  // !
+    allowedMaterial.setColor("Color", new ColorRGBA(0, 1, 0, .4f));
 
+    Node node = (Node) publicAssetManager.loadModel("Models/accessiblePlane/accessiblePlane.j3o");
+    node.setMaterial(allowedMaterial);
+    debugNode.attachChild(node);
+    node.scale(cellSize);
+    System.out.println("hash:"+hash(pos));
+    String[] parts =  hash(pos).split("\\.");
+    
+    System.out.println("Parts: "+Arrays.toString(parts));
+    node.move(Integer.parseInt(parts[0])+cellSize/2,0,Integer.parseInt(parts[1])+cellSize/2);
+    }
     
 }

@@ -12,6 +12,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.debug.Grid;
 import com.jme3.scene.shape.Box;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,10 +32,10 @@ public class Main extends SimpleApplication {
     
     public static final float DELTA_STEP = 3f; // 0.5f
     public final float RRT_RANGE = 50f; // bedzie 700f - bo 700m
-    private final int RRT_ITERATIONS_PER_PRESS = 30; // ilosc prob uwtorzenia punktu RRT
+    private final int RRT_ITERATIONS_PER_PRESS = 3000; // ilosc prob uwtorzenia punktu RRT
     public static final float ACCEPTABLE_RANGE_TO_TARGET = DELTA_STEP;
     public static final float CAMERA_SPEED = 26f; // 13f
-        
+    public static final int GRID_SIZE = 4;
     private BitmapText timeText;
     private long timeSum = 0;
     private BitmapText nodeCountText;
@@ -42,7 +43,9 @@ public class Main extends SimpleApplication {
     private int nodeCounter = 2;
     
     static Node targetNodeIndicator;
+    static Node debugNode = new Node();
     static WorldGrid grid;
+    static Node hashNode = new Node();
     
     public static void main(String[] args) {
         Main app = new Main();
@@ -65,10 +68,12 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        rootNode.attachChild(debugNode);
+        
+        
        initTargetIndicatior();
-
-       grid = new WorldGrid();
-       grid.setup(100, 100, 2);
+rootNode.attachChild(hashNode);
+       grid = new WorldGrid(GRID_SIZE);
         
           guiFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
     
@@ -113,9 +118,32 @@ public class Main extends SimpleApplication {
         {
             
                         System.out.println("try");
+
                SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
                         
                         System.out.println("obstacles.size = "+obstacles.size());
+                        
+                        
+                         Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    mat.getAdditionalRenderState().setWireframe(true);
+       mat.getAdditionalRenderState().setLineWidth(1);
+
+    mat.setColor("Color", ColorRGBA.DarkGray);
+                        
+                        for(int i = -75; i < 75;i++){
+                            for(int j = -75; j<75;j++){
+                         Geometry g = new Geometry("wireframe grid", new Grid(2, 2, 1f));
+   
+    g.setMaterial(mat);
+    g.center().move(GRID_SIZE*i+0.5f,0,GRID_SIZE*j+0.5f);
+    g.scale(GRID_SIZE);
+    obstacleNode.attachChild(g);
+                            }
+                        }
+                        
+                        
+                        
+                        
                         
         } catch (IOException ex) {
             System.out.println("kacz");
@@ -168,20 +196,33 @@ public class Main extends SimpleApplication {
            if(name.equals("K")&& !keyPressed){
            long time1 =  System.currentTimeMillis();
            
-           Node node = new Node();
-           RRTnode.attachChild(node);
-           float moveX = -33.363026f;
-           float moveY = -35.52801f;
-           node.move(moveX,0,moveY);
-           Obstacle o = new Obstacle(new Vector3(moveX,moveY),0.2f);
-           o.setNode(node);
-           grid.GetNearby(o);
            
-//               for(int i = 0; i < RRT_ITERATIONS_PER_PRESS;i++){
-//                  RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
-//               
-////               nodeCounter++;
-//               }
+           //spatial hash test
+//           Node node = new Node();
+//           RRTalgorithm.addBox(0.1f, 0.6f, 0.1f, ColorRGBA.Blue, node);
+//           RRTnode.attachChild(node);
+//           float moveX = -33.363026f;
+//           float moveY = -35.52801f;
+////                System.out.println("flooooor: " + Math.floor(-0.2f) );
+////             float moveX = -1;
+////             float moveY = 1;
+//           node.move(moveX,0,moveY);
+//           Obstacle o = new Obstacle(new Vector3(moveX,moveY),0.2f);
+////                      Obstacle o1 = new Obstacle(new Vector3(0,0),0.2f);
+//
+//           o.setNode(node);
+//           grid.getNearby(o);
+//           System.out.println("close to o: "+grid.getNearby(o));
+//                      System.out.println("close to o1: "+grid.getNearby(o1));
+
+//           grid.GetNearby(o);
+           // spatial hash test
+           
+               for(int i = 0; i < RRT_ITERATIONS_PER_PRESS;i++){
+                  RRTalgorithm.generateRRTwaypoint(RRT_RANGE);
+               
+//               nodeCounter++;
+               }
 
                 
                

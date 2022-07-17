@@ -120,9 +120,10 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
         addHitboxIndicator(RRTnode,obstacle.getRadius(),new Vector3f(  obstacle.getWorldLocation().getX(),obstacle.getWorldLocation().getY(),obstacle.getWorldLocation().getZ()  ));
         obstacle.setNode(node);
         Main.obstacles.add(obstacle);
-        Main.grid.RegisterObject(obstacle);
+        
         obstacleNode.attachChild(node);
-        System.out.println(obstacle.getWorldLocation());
+        Main.grid.insert(obstacle);
+//        System.out.println(obstacle.getWorldLocation());
 //        Main.grid.GetNearby(obstacle);
 
                 } 
