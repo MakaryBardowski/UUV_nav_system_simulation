@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import static mygame.Main.RRTnode;
+import static mygame.Main.debugNode;
 import static mygame.Main.publicAssetManager;
 import static mygame.RRTalgorithm.obstacleNode;
 
@@ -121,7 +122,7 @@ Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3
         obstacle.setNode(node);
         Main.obstacles.add(obstacle);
         
-        obstacleNode.attachChild(node);
+        debugNode.attachChild(node);
         Main.grid.insert(obstacle);
 //        System.out.println(obstacle.getWorldLocation());
 //        Main.grid.GetNearby(obstacle);

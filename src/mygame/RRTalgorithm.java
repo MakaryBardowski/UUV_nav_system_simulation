@@ -24,6 +24,7 @@ import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -48,7 +49,9 @@ public class RRTalgorithm {
     private static Node debugStickEnd = new Node();
         private static Node debugStickStart = new Node();
 
-    
+        private static int debugNum = 0;
+        public static HashMap<String,Vector3> debugMap = new HashMap<>(); // box name
+        
     public static void randomiseTargetNode(ColorRGBA color,float range){
     Waypoint wp = new Waypoint(random(-1,1)*range,0,random(-1,1)*range,null);
     Node node = new Node();
@@ -99,12 +102,6 @@ public class RRTalgorithm {
         
         // wygeneruj punkt (ten w kierunku którego będzie dodany nowy punkt RRT) 
         Waypoint targetWp = new Waypoint(random(-1,1)*range,0,random(-1,1)*range,null);
-        
-        
-//        targetWp.setNode(Main.targetNodeIndicator);
-//        targetWp.getNode().setLocalTranslation(targetWp.getWorldLocation().getX(),0,targetWp.getWorldLocation().getZ());
-//        RRTnode.attachChild(targetWp.getNode());
-//        addBox(0.1f,0.1f,0.1f,ColorRGBA.Magenta,targetWp.getNode());
 
         // znajdź najbliższy już istniejący punkt RRT
         Waypoint closestWp = null; // ten najbliższy punkt , na początku żaden czyli null
@@ -132,6 +129,7 @@ public class RRTalgorithm {
         */
 
         Vector3f imaginaryTargetPos = new Vector3f(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
+        Vector3f checkPos = new Vector3f(closestWp.getWorldLocation().getX()-(((DELTA_STEP/2)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP/2)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
 
         List<Obstacle> obstaclesNearby = new ArrayList<>();
         
@@ -139,46 +137,21 @@ public class RRTalgorithm {
            RRTnode.attachChild(node);
 //           float moveX = -33.363026f;
 //           float moveY = -35.52801f;
-             float moveX = imaginaryTargetPos.getX();
-             float moveZ = imaginaryTargetPos.getZ();
+             float moveX = checkPos.getX();
+             float moveZ = checkPos.getZ();
              
 //              float moveX = closestWp.getWorldLocation().getX();
 //             float moveZ = closestWp.getWorldLocation().getZ();
            node.move(moveX,0,moveZ);
-           Obstacle o = new Obstacle(new Vector3(moveX,moveZ),DELTA_STEP-1);
+           Obstacle o = new Obstacle(new Vector3(moveX,moveZ),DELTA_STEP-DELTA_STEP/3.05f);
            o.setNode(node);
            obstaclesNearby = grid.getNearby(o);
         
         //test
-        Vector3 point2 = new Vector3(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
-        Vector3 point1 = closestWp.getWorldLocation();
+        Vector3 point1 = new Vector3(closestWp.getWorldLocation().getX()-(((DELTA_STEP)*(closestWp.getWorldLocation().getX()-targetWp.getWorldLocation().getX()))/closestWp.distance(targetWp)),0,closestWp.getWorldLocation().getZ()-(((DELTA_STEP)*(closestWp.getWorldLocation().getZ()-targetWp.getWorldLocation().getZ()))/closestWp.distance(targetWp)));
+        Vector3 point2 = closestWp.getWorldLocation();
         
-        for (Obstacle obstacle : obstaclesNearby) {
-            
-
-            result = Utils.findClosestCollision(Utils.lineBetweenPoints(point1, point2), obstacle);
-            
-            collisionCoords = result.getWorldLocation();
-            if(collisionCoords.distance(closestWp.getWorldLocation()) < DELTA_STEP){
-                
-//                            createArrow(new Vector3f(point1.getX(),point1.getY(),point1.getZ()), new Vector3f(point2.getX(),point2.getY(),point2.getZ()),ColorRGBA.Red);
-                            
-//                            Vector3f collisionCoord3f = new Vector3f(result.getWorldLocation().getX(),result.getWorldLocation().getY(),result.getWorldLocation().getZ() );
-//                            Box box1 = new Box(0.01f,0.3f,0.01f);
-//        Geometry blue = new Geometry("Box", box1);
-//        Material mat1 = new Material(publicAssetManager,
-//                "Common/MatDefs/Misc/Unshaded.j3md");
-//        mat1.setColor("Color", ColorRGBA.Red);
-//        blue.setMaterial(mat1);
-//        RRTnode.attachChild(blue);
-//        blue.move(collisionCoord3f);
-                            collisionOccured = result.getCollisionOccured();
-
-//                System.out.println("kolizja");
-//System.out.println("obstacle"+obstacle.getWorldLocation());
-                break;
-            }
-        }
+        checkCollision(obstaclesNearby,point1,point2);
 
         // to liczy sie tylko do wizualizacji, niepotrzebne do dzialania matematycznego
         Node addedWpNode = new Node(Integer.toString(Main.waypoints.size()));
@@ -246,36 +219,18 @@ public class RRTalgorithm {
     
     public static void addBox(float sizeX,float sizeY, float sizeZ,ColorRGBA color,Node node){
         Box b = new Box(sizeX, sizeY, sizeZ);
-        Geometry geom = new Geometry("Box", b);
+        Geometry geom = new Geometry("Box"+debugNum++, b);
 
         Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", color);
         geom.setMaterial(mat);
 
         node.attachChild(geom);
+        debugMap.put(geom.getName(), new Vector3(node.getWorldTranslation().getX(),0,node.getWorldTranslation().getZ()));
 //        node.setCullHint(Spatial.CullHint.Always);
     }
     
-    public static void addObstacleBox(float sizeX,float sizeY, float sizeZ,ColorRGBA color,Node node,Vector3f offset){
-        Box b = new Box(sizeX, sizeY, sizeZ);
-        Geometry geom = new Geometry("Box", b);
 
-        Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setColor("Color", color);
-        mat.getAdditionalRenderState().setWireframe(false);
-    mat.getAdditionalRenderState().setLineWidth(1);
-        geom.setMaterial(mat);
-
-        node.attachChild(geom);
-        obstacleNode.attachChild(node);
-        node.move(offset);
-//        node.setCullHint(Spatial.CullHint.Always);
-    }
-    
- 
-    
-    
-    
     
     public static void plotLine(Vector3f[] lineVerticies, ColorRGBA lineColor){
         Mesh m = new Mesh();
@@ -311,7 +266,7 @@ public class RRTalgorithm {
     
     Material mat = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
     mat.getAdditionalRenderState().setWireframe(true);
-    mat.getAdditionalRenderState().setLineWidth(1);
+    mat.getAdditionalRenderState().setLineWidth(18);
     mat.setColor("Color", color);
     g.setMaterial(mat);
     RRTnode.attachChild(g);
@@ -321,7 +276,30 @@ public class RRTalgorithm {
     
     
     
-    
+    public static CollisionResult checkCollision(List<Obstacle> obstaclesNearby,Vector3 point1, Vector3 point2){
+        CollisionResult result = null;
+        Vector3 collisionCoords = null;
+        for (Obstacle obstacle : obstaclesNearby) {
+            
+
+            result = Utils.findClosestCollision(Utils.lineBetweenPoints(point1, point2), obstacle);
+            
+            collisionCoords = result.getWorldLocation();
+            if(collisionCoords.distance(point1) < DELTA_STEP){
+                
+//                            createArrow(new Vector3f(point1.getX(),point1.getY(),point1.getZ()), new Vector3f(point2.getX(),point2.getY(),point2.getZ()),ColorRGBA.Red);
+                            
+//    System.out.println("KOLIZJA");
+
+                            collisionOccured = result.getCollisionOccured();
+
+                break;
+            }
+            
+        }
+                    return result;
+
+    }
     
     
     

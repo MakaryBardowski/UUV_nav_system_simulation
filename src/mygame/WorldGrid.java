@@ -36,23 +36,12 @@ public class WorldGrid {
     }
     
     public String hash(Vector3 point){
-//        System.out.println("point:" + point);  // old
-//        
-//    int[] loc = new int[2];
-//    loc[0] = (int)Math.floor(point.getX()/cellSize);
-//    loc[1] = (int)Math.floor(point.getZ()/cellSize);
-//    System.out.println("loc "+ Arrays.toString(loc));
-//    return loc[0]+"."+loc[1];
-
-     System.out.println("point:" + point);
-        
     int[] loc = new int[2];
     loc[0] = cellSize*(int)(Math.floor(point.getX()/cellSize));
 
 
     loc[1] = cellSize*(int)(Math.floor(point.getZ()/cellSize));
 
-    System.out.println("loc "+ Arrays.toString(loc));
     return loc[0]+"."+loc[1];
 
     }
@@ -175,9 +164,13 @@ public class WorldGrid {
             output.addAll( contents.get( hash(newMin)) );
                 }
         
+        
+         
+         
         return output;
     }
     
+    // debug methods
     
     private  void addDebugTile(Vector3 pos){
           Material allowedMaterial = new Material(publicAssetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -188,11 +181,13 @@ public class WorldGrid {
     node.setMaterial(allowedMaterial);
     debugNode.attachChild(node);
     node.scale(cellSize);
-    System.out.println("hash:"+hash(pos));
     String[] parts =  hash(pos).split("\\.");
     
-    System.out.println("Parts: "+Arrays.toString(parts));
     node.move(Integer.parseInt(parts[0])+cellSize/2,0,Integer.parseInt(parts[1])+cellSize/2);
     }
+    
+    
+    
+    
     
 }

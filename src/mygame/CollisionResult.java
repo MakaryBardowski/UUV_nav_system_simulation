@@ -26,6 +26,13 @@ public class CollisionResult {
     public Vector3 getWorldLocation() {
         return worldLocation;
     }
+
+    @Override
+    public String toString() {
+        return "CollisionResult{" + "collisionOccured=" + collisionOccured + ", worldLocation=" + worldLocation + '}';
+    }
+    
+    
     
     
     

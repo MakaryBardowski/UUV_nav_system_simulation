@@ -2,10 +2,13 @@ package mygame;
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
+import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
 import com.jme3.input.KeyInput;
+import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -14,12 +17,15 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.debug.Grid;
 import com.jme3.scene.shape.Box;
+import com.jme3.ui.Picture;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import static mygame.RRTalgorithm.debugMap;
 import static mygame.RRTalgorithm.obstacleNode;
 import static mygame.Utils.random;
 
@@ -32,20 +38,27 @@ public class Main extends SimpleApplication {
     
     public static final float DELTA_STEP = 3f; // 0.5f
     public final float RRT_RANGE = 50f; // bedzie 700f - bo 700m
-    private final int RRT_ITERATIONS_PER_PRESS = 3000; // ilosc prob uwtorzenia punktu RRT
+    private final int RRT_ITERATIONS_PER_PRESS = 30; // ilosc prob uwtorzenia punktu RRT
     public static final float ACCEPTABLE_RANGE_TO_TARGET = DELTA_STEP;
     public static final float CAMERA_SPEED = 26f; // 13f
     public static final int GRID_SIZE = 4;
+    public static final int A_STAR_GRID_SIZE = 1;
+    
     private BitmapText timeText;
     private long timeSum = 0;
     private BitmapText nodeCountText;
     private BitmapText timeSumText;
-    private int nodeCounter = 2;
-    
+        static WorldGrid grid;
+
+        //debug variables
     static Node targetNodeIndicator;
     static Node debugNode = new Node();
-    static WorldGrid grid;
     static Node hashNode = new Node();
+    static int nodesChosen = 0; // simple debug var, if 0 then you choose the starting point on click
+    // if 1 you choose the finish point
+    // if 2 then it resets the chosen nodes
+    static Obstacle startingObst = null;
+    static Obstacle finishObst = null;
     
     public static void main(String[] args) {
         Main app = new Main();
@@ -69,6 +82,13 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         rootNode.attachChild(debugNode);
+        
+        Picture crosshair = new Picture("crosshair");
+        crosshair.setImage(assetManager, "Textures/crosshair.png", true);
+        crosshair.setWidth(settings.getHeight()*0.04f);
+        crosshair.setHeight(settings.getHeight()*0.04f); //0.04f
+        crosshair.setPosition((settings.getWidth()/2)-settings.getHeight()*0.04f/2, settings.getHeight()/2-settings.getHeight()*0.04f/2);
+        guiNode.attachChild(crosshair);
         
         
        initTargetIndicatior();
@@ -102,9 +122,7 @@ rootNode.attachChild(hashNode);
     guiNode.attachChild(timeSumText);
     
     long time1 = System.currentTimeMillis();
-    for(int i = 0; i < 10000; i++){
-    random(-1, 1);
-    }
+
     System.out.println(System.currentTimeMillis() - time1);
     
         initKeys();
@@ -126,10 +144,12 @@ rootNode.attachChild(hashNode);
                         
                          Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
     mat.getAdditionalRenderState().setWireframe(true);
-       mat.getAdditionalRenderState().setLineWidth(1);
+       mat.getAdditionalRenderState().setLineWidth(1.6f);
 
     mat.setColor("Color", ColorRGBA.DarkGray);
                         
+    
+    //wizualizacja glownej siatki
                         for(int i = -75; i < 75;i++){
                             for(int j = -75; j<75;j++){
                          Geometry g = new Geometry("wireframe grid", new Grid(2, 2, 1f));
@@ -140,9 +160,24 @@ rootNode.attachChild(hashNode);
     obstacleNode.attachChild(g);
                             }
                         }
+                             Material mat1 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+    mat1.getAdditionalRenderState().setWireframe(true);
+       mat1.getAdditionalRenderState().setLineWidth(1);
+       mat1.setColor("Color", ColorRGBA.Brown);
                         
-                        
-                        
+                  //wizualizacja siatki A*
+                  for(int i = -75; i < 75;i++){
+                            for(int j = -75; j<75;j++){
+                         Geometry g = new Geometry("wireframe grid", new Grid(2, 2, 1f));
+    
+    g.setMaterial(mat1);
+    g.center().move(A_STAR_GRID_SIZE*i+0.5f,0,A_STAR_GRID_SIZE*j+0.5f);
+    g.scale(A_STAR_GRID_SIZE);
+    obstacleNode.attachChild(g);
+                            }
+                        }
+                  
+                  
                         
                         
         } catch (IOException ex) {
@@ -185,14 +220,70 @@ rootNode.attachChild(hashNode);
     
      private void initKeys() {
         inputManager.addMapping("K",  new KeyTrigger(KeyInput.KEY_K));
-  
+          inputManager.addMapping("select",  new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("castRay",  new KeyTrigger(KeyInput.KEY_R));
+
         inputManager.addListener(actionListener, "K");
+                inputManager.addListener(actionListener, "select");
+                inputManager.addListener(actionListener, "castRay");
+
 
     }
 
     private final ActionListener actionListener = new ActionListener() {
         @Override
         public void onAction(String name, boolean keyPressed, float tpf) {
+            if(name.equals("castRay") && !keyPressed && finishObst != null){
+                List<Obstacle> obstaclesNearby = new ArrayList<>();
+                        Vector3 point1 = startingObst.getWorldLocation();
+
+                 Vector3 point2 = finishObst.getWorldLocation();
+                 obstaclesNearby = grid.getNearby(finishObst);
+       RRTalgorithm.createArrow(new Vector3f(startingObst.getWorldLocation().getX(),startingObst.getWorldLocation().getY(),startingObst.getWorldLocation().getZ()), new Vector3f(finishObst.getWorldLocation().getX(),finishObst.getWorldLocation().getY(),finishObst.getWorldLocation().getZ()),ColorRGBA.Red);
+       RRTalgorithm.checkCollision(obstaclesNearby, point1, point2);
+            }
+            
+            if(name.equals("select") && !keyPressed){
+            
+                
+                 CollisionResults results = new CollisionResults();
+        com.jme3.math.Ray ray = new com.jme3.math.Ray(cam.getLocation(), cam.getDirection());
+        RRTnode.collideWith(ray, results);
+        for (int i = 0; i < results.size(); i++) {
+          float dist = results.getCollision(i).getDistance();
+          Vector3f pt = results.getCollision(i).getContactPoint();
+          String hit = results.getCollision(i).getGeometry().getName();
+        }
+        if (results.size() > 0) {
+            
+          com.jme3.collision.CollisionResult closest = results.getClosestCollision();
+          
+          System.out.println("trafiles noda: "+closest.getGeometry().getName() );
+
+          
+          
+          Obstacle o = new Obstacle( debugMap.get(closest.getGeometry().getName()) , DELTA_STEP-DELTA_STEP/3.05f); //3.05 so the radius is less than gridCell size / 2
+          grid.getNearby(o);
+          
+          if(nodesChosen == 0){
+          startingObst = o;
+          nodesChosen++;
+          }else if(nodesChosen++ == 1){
+          finishObst = o;
+                    nodesChosen++;
+
+          }else{
+          nodesChosen = 0;
+          finishObst = null;
+          startingObst = null;
+          }
+        } 
+                
+                
+                
+            }
+            
+            
            if(name.equals("K")&& !keyPressed){
            long time1 =  System.currentTimeMillis();
            
