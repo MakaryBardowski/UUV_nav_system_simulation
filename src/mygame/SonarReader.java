@@ -33,14 +33,14 @@ import static mygame.RRTalgorithm.obstacleNode;
  *
  * @author Makary Bardowski
  */
-public class SonarReader {
+public class SonarReader implements SonarReaderInterface{
         public static ArrayList<Float> angles = new ArrayList<>();
     public static HashMap<Float,ArrayList<Waypoint>> waypointsByAngle = new HashMap<>();
     
     
       
-    
-      public static void readAndDrawNewSonarOutput(String path,int signalThreshold) throws FileNotFoundException, IOException{
+        @Override
+      public void readFile(String path,int signalThreshold) throws FileNotFoundException, IOException{
          
     Float range;
      BufferedReader reader = new BufferedReader(new FileReader(path));

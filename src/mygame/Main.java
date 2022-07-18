@@ -31,17 +31,19 @@ import static mygame.Utils.random;
 
 public class Main extends SimpleApplication {
     
+    /* IF YOU ARE READING THIS - THIS CODE IS PENDING FOR CLEANUP. DUE TO HIGH COMPLEXITY OF THE PROGRAM,
+    I DECIDED I WILL REWRITE IT (ACCORDING TO SOLID RULES) ONCE EVERYTHING IS IN PLACE */
     public static ArrayList<Waypoint> waypoints = new ArrayList<>();
     public static ArrayList<Obstacle> obstacles = new ArrayList<>();
     public static final Node RRTnode = new Node();
     public static AssetManager publicAssetManager;
     
-    public static final float DELTA_STEP = 3f; // 0.5f
-    public final float RRT_RANGE = 50f; // bedzie 700f - bo 700m
-    private final int RRT_ITERATIONS_PER_PRESS = 30; // ilosc prob uwtorzenia punktu RRT
+    public static final float DELTA_STEP = 3f; // distance between RRT points
+    public final float RRT_RANGE = 50f; // range in meters (square RRT_RANGE x RRT_RANGE)
+    private final int RRT_ITERATIONS_PER_PRESS = 3000; 
     public static final float ACCEPTABLE_RANGE_TO_TARGET = DELTA_STEP;
-    public static final float CAMERA_SPEED = 26f; // 13f
-    public static final int GRID_SIZE = 4;
+    public static final float CAMERA_SPEED = 26f; 
+    public static final int GRID_SIZE = 4; // RRT optimization hashing grid size
     public static final int A_STAR_GRID_SIZE = 1;
     
     private BitmapText timeText;
@@ -137,7 +139,8 @@ rootNode.attachChild(hashNode);
             
                         System.out.println("try");
 
-               SonarReader.readAndDrawNewSonarOutput("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
+               SonarReader sonarReader = new SonarReader();
+               sonarReader.readFile("C:\\Users\\48793\\Desktop\\basen\\sonarOdczyty\\jezioro\\walec metal n 5 357.txt",35);
                         
                         System.out.println("obstacles.size = "+obstacles.size());
                         
